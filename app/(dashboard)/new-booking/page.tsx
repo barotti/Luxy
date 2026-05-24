@@ -29,8 +29,8 @@ export default async function NewBookingPage() {
               </label>
               <select className="w-full bg-[#10141C] border border-[#2A3040] rounded-lg px-4 py-2.5 text-[#F4F0E6] text-sm focus:border-[#C9A75F] focus:outline-none transition-colors">
                 <option value="">Seleziona struttura e stanza...</option>
-                {properties.map((property) =>
-                  property.rooms.map((room) => (
+                {properties.map((property: (typeof properties)[number]) =>
+                  property.rooms.map((room: (typeof property.rooms)[number]) => (
                     <option key={room.id} value={room.id}>
                       {property.name} — {room.name}
                     </option>
