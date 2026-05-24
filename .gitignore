@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# scripts locali (contengono logica di setup, non necessari in prod)
+/scripts
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma

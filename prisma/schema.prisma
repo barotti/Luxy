@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  nickname     String   @unique
+  email        String?  @unique
+  passwordHash String
+  role         UserRole @default(collaboratore)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  collaboratorBookings Booking[]               @relation("BookingCollaborator")
+  propertyLinks        PropertyCollaborator[]
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  address     String?
+  description String?
+  images      String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rooms         Room[]
+  bookings      Booking[]
+  collaborators PropertyCollaborator[]
+}
+
+model Room {
+  id          String   @id @default(cuid())
+  propertyId  String
+  name        String
+  capacity    Int      @default(1)
+  description String?
+  images      String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  property     Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  monthlyRates MonthlyRate[]
+  bookings     Booking[]
+}
+
+model MonthlyRate {
+  id          String @id @default(cuid())
+  roomId      String
+  year        Int
+  month       Int
+  price       Float
+  cleaningFee Float  @default(0)
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, year, month])
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  propertyId      String
+  roomId          String
+  clientFirstName String
+  clientLastName  String?
+  clientPhone     String?
+  clientEmail     String?
+  guests          Int           @default(1)
+  checkIn         DateTime      @db.Date
+  checkOut        DateTime      @db.Date
+  nights          Int
+  stayAmount      Float
+  cleaningAmount  Float         @default(0)
+  ownerAmount     Float
+  feeAmount       Float         @default(0)
+  totalAmount     Float
+  collectedAmount Float         @default(0)
+  paymentMethodId String?
+  bookingSource   String?
+  status          BookingStatus @default(in_trattativa)
+  notes           String?
+  collaboratorId  String?
+  quotePdfUrl     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  property      Property       @relation(fields: [propertyId], references: [id])
+  room          Room           @relation(fields: [roomId], references: [id])
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  collaborator  User?          @relation("BookingCollaborator", fields: [collaboratorId], references: [id])
+}
+
+model PaymentMethod {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+model PropertyCollaborator {
+  id               String               @id @default(cuid())
+  propertyId       String
+  userId           String
+  roleOnProperty   CollaboratorRole     @default(collaboratore)
+  createdAt        DateTime             @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, userId])
+}
+
+enum UserRole {
+  admin
+  owner
+  concierge
+  collaboratore
+}
+
+enum BookingStatus {
+  in_trattativa
+  bloccato
+  prenotato
+  finalizzato
+  cancellato
+}
+
+enum CollaboratorRole {
+  owner
+  concierge
+  collaboratore
+}
