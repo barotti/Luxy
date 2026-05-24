@@ -17,7 +17,7 @@ export default function proxy(request: NextRequest) {
   }
 
   if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/properties", request.url));
   }
 }
 
