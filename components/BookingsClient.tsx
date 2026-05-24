@@ -178,24 +178,17 @@ export function BookingsClient({
   async function cancelBooking() {
     if (!cancelConfirm) return;
     setSaving(true);
+    setError(null);
     try {
       const res = await fetch(`/api/bookings/${cancelConfirm.id}`, { method: "DELETE" });
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         setError(data.error || "Errore nell'annullamento");
         return;
       }
-      const updated = await res.json();
-      const serialized = {
-        ...updated,
-        checkIn: updated.checkIn
-          ? (typeof updated.checkIn === "string" ? updated.checkIn : new Date(updated.checkIn).toISOString()).slice(0, 10)
-          : "",
-        checkOut: updated.checkOut
-          ? (typeof updated.checkOut === "string" ? updated.checkOut : new Date(updated.checkOut).toISOString()).slice(0, 10)
-          : "",
-      };
-      setBookings((prev) => prev.map((b) => (b.id === cancelConfirm.id ? serialized : b)));
+      setBookings((prev) =>
+        prev.map((b) => (b.id === cancelConfirm.id ? { ...b, status: "cancellato" } : b))
+      );
       setCancelConfirm(null);
     } catch {
       setError("Errore di rete");
@@ -358,12 +351,13 @@ export function BookingsClient({
                         </button>
                         {b.status !== "cancellato" && (
                           <button
-                            onClick={() =>
+                            onClick={() => {
+                              setError(null);
                               setCancelConfirm({
                                 id: b.id,
                                 label: `${b.clientFirstName} ${b.clientLastName ?? ""}`,
-                              })
-                            }
+                              });
+                            }}
                             className="text-[#D95D5D] hover:text-[#C04A4A] text-xs px-2 py-1 border border-[#D95D5D]/40 hover:border-[#D95D5D] rounded transition-colors"
                           >
                             Cancella
@@ -468,13 +462,18 @@ export function BookingsClient({
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-[#151A24] border border-[#2A3040] rounded-xl p-6 w-full max-w-sm">
             <h2 className="text-[#F4F0E6] font-semibold text-lg mb-2">Annulla prenotazione</h2>
-            <p className="text-[#A6A29A] text-sm mb-6">
+            <p className="text-[#A6A29A] text-sm mb-4">
               Annullare la prenotazione di{" "}
               <span className="text-[#F4F0E6] font-medium">{cancelConfirm.label}</span>?{" "}
               Lo stato verrà impostato a <span className="text-[#A6A29A] font-medium">Cancellato</span>.
             </p>
+            {error && (
+              <div className="bg-[#D95D5D]/10 border border-[#D95D5D]/30 text-[#D95D5D] text-sm rounded-lg px-4 py-2.5 mb-4">
+                {error}
+              </div>
+            )}
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setCancelConfirm(null)} className={secondaryBtn}>
+              <button onClick={() => { setCancelConfirm(null); setError(null); }} className={secondaryBtn}>
                 Indietro
               </button>
               <button onClick={cancelBooking} disabled={saving} className={dangerBtn}>

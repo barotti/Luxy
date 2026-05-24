@@ -45,25 +45,24 @@ export async function PUT(
     }
   }
 
-  const updatedRates = await prisma.$transaction(async (tx) => {
-    await tx.monthlyRate.deleteMany({ where: { roomId } });
+  // Neon HTTP adapter does not support interactive transactions — run sequentially
+  await prisma.monthlyRate.deleteMany({ where: { roomId } });
 
-    if (rates.length > 0) {
-      await tx.monthlyRate.createMany({
-        data: rates.map((r: { year: number; month: number; price: number; cleaningFee: number }) => ({
-          roomId,
-          year: r.year,
-          month: r.month,
-          price: r.price,
-          cleaningFee: r.cleaningFee,
-        })),
-      });
-    }
-
-    return tx.monthlyRate.findMany({
-      where: { roomId },
-      orderBy: [{ year: "asc" }, { month: "asc" }],
+  if (rates.length > 0) {
+    await prisma.monthlyRate.createMany({
+      data: rates.map((r: { year: number; month: number; price: number; cleaningFee: number }) => ({
+        roomId,
+        year: r.year,
+        month: r.month,
+        price: r.price,
+        cleaningFee: r.cleaningFee,
+      })),
     });
+  }
+
+  const updatedRates = await prisma.monthlyRate.findMany({
+    where: { roomId },
+    orderBy: [{ year: "asc" }, { month: "asc" }],
   });
 
   return NextResponse.json(updatedRates);

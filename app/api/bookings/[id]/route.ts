@@ -63,8 +63,7 @@ export async function DELETE(
   const booking = await prisma.booking.update({
     where: { id },
     data: { status: "cancellato" },
-    include: { property: true, room: true, paymentMethod: true },
   });
 
-  return NextResponse.json(booking);
+  return NextResponse.json({ id: booking.id, status: booking.status });
 }
