@@ -43,4 +43,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/app/generated/prisma
+# /app/generated/prisma  ← incluso nel repo, generato da postinstall su Vercel
