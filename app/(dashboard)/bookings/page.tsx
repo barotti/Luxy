@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { formatEuro, formatDate } from "@/lib/utils";
+
+type BookingWithRelations = Prisma.BookingGetPayload<{
+  include: { property: true; room: true; collaborator: true; paymentMethod: true };
+}>;
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   in_trattativa: { label: "In Trattativa", color: "text-[#C9A75F] bg-[#C9A75F]/10 border-[#C9A75F]/20" },
@@ -63,7 +68,7 @@ export default async function BookingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {bookings.map((b) => {
+                {bookings.map((b: BookingWithRelations) => {
                   const status = STATUS_LABELS[b.status] ?? STATUS_LABELS.in_trattativa;
                   return (
                     <tr
