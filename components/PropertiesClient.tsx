@@ -27,7 +27,7 @@ async function apiFetch(method: string, url: string, body?: object) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = res.status === 204 || res.headers.get("content-length") === "0" ? null : await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error ?? "Errore di rete");
+  if (!res.ok) throw new Error(data?.error ?? `Errore server (${res.status})`);
   return data;
 }
 
